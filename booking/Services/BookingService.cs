@@ -50,12 +50,34 @@ public class BookingService(
         if (dto == null)
             return null!;
 
-        await _bookingRepository.BeginTransactionAsync();
+        EventDto? eventData = null;
+        try
+        {
+            var response = await _httpClient.GetAsync($"https://localhost:7138/api/events/{dto.EventId}");
+            if (response.IsSuccessStatusCode)
+            {
+                eventData = await response.Content.ReadFromJsonAsync<EventDto>();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"[BookingService] Error: could not contact EventService: {ex.Message}");
+            return null!;
+        }
+
+        if (eventData == null)
+        {
+            Console.WriteLine("[BookingService] Event not found, booking cancelled.");
+            return null!;
+        }
+
         var entity = dto.MapTo<BookingEntity>();
 
+        await _bookingRepository.BeginTransactionAsync();
         await _bookingRepository.AddAsync(entity);
-        var savedResult = await _bookingRepository.SaveAsync();
-        if (!savedResult)
+
+        var saved = await _bookingRepository.SaveAsync();
+        if (!saved)
         {
             await _bookingRepository.RollbackTransactionAsync();
             return null!;
@@ -63,6 +85,7 @@ public class BookingService(
 
         await _bookingRepository.CommitTransactionAsync();
         return entity;
+
     }
 
     public async Task<BookingModel> GetbookingAsync(string id)
