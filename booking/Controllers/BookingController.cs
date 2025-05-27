@@ -1,6 +1,8 @@
 ﻿using booking.Models;
 using booking.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace booking.Controllers;
 
@@ -10,18 +12,31 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
 {
     private readonly IBookingService _bookingService = bookingService;
 
-    [HttpGet("user/{email}")]
-    public async Task<IActionResult> GetAllBookingsOnUser(string email)
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetAllBookingsOnUser()
     {
-        var bookings = await _bookingService.GetAllbookings(email);
+        var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userEmail))
+            return Unauthorized();
+
+        var bookings = await _bookingService.GetAllBookingsOnUserAsync(userEmail);
+
         return (bookings != null)
             ? Ok(bookings)
             : NotFound();
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetBookingById(string id)
     {
+        var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userEmail))
+            return Unauthorized();
+
         var bookingModel = await _bookingService.GetbookingAsync(id);
 
         return (bookingModel != null)
@@ -29,11 +44,19 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
             : NotFound();
     }
 
+    [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Createbooking(BookingDto bookingDto)
+    public async Task<IActionResult> Createbooking(BookingRegDto bookingDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
+        var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userEmail))
+            return Unauthorized();
+
+        bookingDto.BookingEmail = userEmail;
 
         var createdbooking = await _bookingService.CreatebookingAsync(bookingDto);
 
