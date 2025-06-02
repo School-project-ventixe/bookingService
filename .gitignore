@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /booking/appsettings.Development.json
 /booking/appsettings.json
+/booking/Migrations/20250602090953_init.cs
+/booking/Migrations/DataContextsModelSnapshot.cs
