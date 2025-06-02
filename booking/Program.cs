@@ -9,20 +9,24 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<DataContexts>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("bookingConnection")));
+
+builder.Services.AddDbContext<DataContexts>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("bookingConnection")));
+
 
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
+
 builder.Services.AddHttpClient("EventService", client =>
 {
-    client.BaseAddress = new Uri(
-        builder.Configuration["EventService:BaseUrl"]!);
-    client.DefaultRequestHeaders.Accept
-          .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    client.BaseAddress = new Uri(builder.Configuration["EventService:BaseUrl"]!);
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -34,32 +38,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    builder.Configuration["JwtKey"]!))
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtKey"]!))
         };
+
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
                 context.Token = context.Request.Cookies["jwt"];
                 return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync("{\"error\": \"Unauthorized\"}");
             }
         };
     });
 
 
-builder.Services.AddCors(o =>
-    o.AddPolicy("CorsPolicy", p =>
-        p.WithOrigins("https://yellow-stone-0fa87d003.6.azurestaticapps.net")
-         .AllowAnyHeader()
-         .AllowAnyMethod()
-         .AllowCredentials()));
-
-builder.Services.AddOpenApi();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy
+            .WithOrigins("https://yellow-stone-0fa87d003.6.azurestaticapps.net")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
-app.MapOpenApi();
 
 app.UseHttpsRedirection();
 
@@ -71,35 +84,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-
-
-
-//using booking.Repositories;
-//using booking.Services;
-//using Microsoft.EntityFrameworkCore;
-//using booking.Data.Contexts;
-
-//var builder = WebApplication.CreateBuilder(args);
-
-//builder.Services.AddDbContext<DataContexts>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("bookingConnection")));
-
-//builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-//builder.Services.AddScoped<IBookingService, BookingService>();
-
-//builder.Services.AddControllers();
-//builder.Services.AddOpenApi();
-
-//var app = builder.Build();
-
-//app.MapOpenApi();
-//app.UseHttpsRedirection();
-
-//app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-
-//app.UseAuthorization();
-//app.UseAuthentication();
-
-//app.MapControllers();
-
-//app.Run();
