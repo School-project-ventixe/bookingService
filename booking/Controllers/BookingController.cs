@@ -44,6 +44,7 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
             : NotFound();
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Createbooking(BookingRegDto bookingDto)
     {
