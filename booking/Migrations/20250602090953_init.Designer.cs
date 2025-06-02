@@ -11,8 +11,8 @@ using booking.Data.Contexts;
 namespace booking.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    [Migration("20250521132233_Init")]
-    partial class Init
+    [Migration("20250602090953_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

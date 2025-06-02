@@ -50,7 +50,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddCors(o =>
     o.AddPolicy("CorsPolicy", p =>
-        p.WithOrigins("http://localhost:5173")
+        p.WithOrigins("https://yellow-stone-0fa87d003.6.azurestaticapps.net")
          .AllowAnyHeader()
          .AllowAnyMethod()
          .AllowCredentials()));
