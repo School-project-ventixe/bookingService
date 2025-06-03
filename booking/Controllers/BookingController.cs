@@ -51,12 +51,11 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-
         var createdbooking = await _bookingService.CreatebookingAsync(bookingDto);
 
         return (createdbooking != null)
             ? Ok(createdbooking)
-            : BadRequest("Failed to create booking");
+            : Unauthorized("Failed to create booking");
     }
 
     [HttpDelete("{id}")]
