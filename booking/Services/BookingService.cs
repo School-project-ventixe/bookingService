@@ -53,7 +53,7 @@ public class BookingService(
         EventDto? eventData = null;
         try
         {
-            var response = await _httpClient.GetAsync($"https://localhost:7138/api/events/{dto.EventId}");
+            var response = await _httpClient.GetAsync($"https://eventservice-ventixe-amezefgkfsc4dces.swedencentral-01.azurewebsites.net/api/events/{dto.EventId}");
             if (response.IsSuccessStatusCode)
             {
                 eventData = await response.Content.ReadFromJsonAsync<EventDto>();
