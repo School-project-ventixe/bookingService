@@ -51,12 +51,6 @@ public class BookingsController(IBookingService bookingService) : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrEmpty(userEmail))
-            return Unauthorized();
-
-        bookingDto.BookingEmail = userEmail;
 
         var createdbooking = await _bookingService.CreatebookingAsync(bookingDto);
 
